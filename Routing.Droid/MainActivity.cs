@@ -10,6 +10,7 @@ using System.Net;
 using System.IO;
 using System;
 using Android.Views.InputMethods;
+using Android.Views;
 
 namespace Routing.Droid
 {
@@ -51,6 +52,30 @@ namespace Routing.Droid
                           "&username=vali28";
 
                 JsonValue json = await FetchDataAsync(url);
+
+                Android.Support.V7.App.AlertDialog.Builder alertDialog = new Android.Support.V7.App.AlertDialog.Builder(this);
+                alertDialog.SetTitle("Login");
+                alertDialog.SetMessage("Wrong email or password");
+                alertDialog.SetNeutralButton("Try again", delegate
+                {
+                    alertDialog.Dispose();
+                });
+                alertDialog.Show();
+
+                //JsonValue answer = json["answer"];
+
+                //if (answer.equals("true"))
+                //{
+                //    //successful login
+                //    jsonvalue token = json["token"];
+                //    //startactivity(typeof(mapactivity));
+
+                //}
+                //else
+                //{
+                //    //unsuccessful login
+
+                //}
             };
 
             btnCreateAcc.Click += (sender, e) => {
@@ -58,23 +83,6 @@ namespace Routing.Droid
 
             };
 
-
-            /*
-            if (email != null && password != null)
-            {
-
-                Log.Info("LoginForm:", "NOT NULL");
-                //utilizatorul NU trebuie sa introduca datele
-                //new AsyncLogin().execute(email, password);
-                Log.Info("LoginForm:", email);
-                Log.Info("LoginForm:", password);
-            }
-            else
-            {
-                //utilizatorul trebuie sa introduca datele
-                Log.Info("LoginForm:", "NULL");
-            }
-            */
         }
 
         public static string MD5Hash(string input)
@@ -112,7 +120,6 @@ namespace Routing.Droid
                 }
             }
         }
-
     }
 }
 
