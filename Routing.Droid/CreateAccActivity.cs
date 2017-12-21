@@ -53,7 +53,6 @@ namespace Routing.Droid
                                 hashPassword +
                                 username +
                                 "&username=vali28";
-
                     JsonValue json = await FetchDataAsync(url);
                  }
             };

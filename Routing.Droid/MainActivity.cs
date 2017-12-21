@@ -10,7 +10,7 @@ using System.Net;
 using System.IO;
 using System;
 using Android.Views.InputMethods;
-using Android.Views;
+using Android.Preferences;
 
 namespace Routing.Droid
 {
@@ -40,8 +40,13 @@ namespace Routing.Droid
                 InputMethodManager inputManager = (InputMethodManager)this.GetSystemService(Context.InputMethodService);
                 inputManager.HideSoftInputFromWindow(this.CurrentFocus.WindowToken, HideSoftInputFlags.NotAlways);
 
-                email = etEmail.Text;
-                password = etPassword.Text;
+                if (!IsThereAUser())
+                {
+                    email = etEmail.Text;
+                    password = etPassword.Text;
+                }
+                
+
 
                 string hashPassword = MD5Hash(password);
 
@@ -53,29 +58,29 @@ namespace Routing.Droid
 
                 JsonValue json = await FetchDataAsync(url);
 
-                Android.Support.V7.App.AlertDialog.Builder alertDialog = new Android.Support.V7.App.AlertDialog.Builder(this);
-                alertDialog.SetTitle("Login");
-                alertDialog.SetMessage("Wrong email or password");
-                alertDialog.SetNeutralButton("Try again", delegate
+                JsonValue answer = json["answer"];
+
+                if (answer.Equals("true"))
                 {
-                    alertDialog.Dispose();
-                });
-                alertDialog.Show();
+                    //successful login
+                    JsonValue token = json["token"];
+                    SaveCredentials(email, hashPassword);
+                    //startactivity(typeof(mapactivity));
 
-                //JsonValue answer = json["answer"];
+                }
+                else
+                {
+                    //unsuccessful login
+                    Android.Support.V7.App.AlertDialog.Builder alertDialog = new Android.Support.V7.App.AlertDialog.Builder(this);
+                    alertDialog.SetTitle("Login");
+                    alertDialog.SetMessage("Wrong email or password");
+                    alertDialog.SetNeutralButton("Try again", delegate
+                    {
+                        alertDialog.Dispose();
+                    });
+                    alertDialog.Show();
 
-                //if (answer.equals("true"))
-                //{
-                //    //successful login
-                //    jsonvalue token = json["token"];
-                //    //startactivity(typeof(mapactivity));
-
-                //}
-                //else
-                //{
-                //    //unsuccessful login
-
-                //}
+                }
             };
 
             btnCreateAcc.Click += (sender, e) => {
@@ -119,6 +124,24 @@ namespace Routing.Droid
                     return jsonDoc;
                 }
             }
+        }
+
+        private void SaveCredentials(string email, string password)
+        {
+            ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(this);
+            ISharedPreferencesEditor editor = prefs.Edit();
+            editor.PutString("email", email);
+            editor.PutString("password", password);
+            editor.Apply();
+        }
+        private Boolean IsThereAUser()
+        {
+            ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(this);
+            email = prefs.GetString("email", "");
+            password = prefs.GetString("password", "");
+            if (email != null && password != null)
+                return true;
+            return false;
         }
     }
 }
