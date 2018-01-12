@@ -2,6 +2,8 @@
 <resources>
   <style name="RoutingTheme" parent="RoutingTheme.Base">
   </style>
+  
+  
   <!-- Base theme applied no matter what API -->
   <style name="RoutingTheme.Base" parent="Theme.AppCompat.Light.DarkActionBar">
     <!--If you are using revision 22.1 please use just windowNoTitle. Without android:-->
@@ -15,8 +17,9 @@
     <item name="colorPrimaryDark">#1976D2</item>
     <!-- colorAccent is used as the default value for colorControlActivated
          which is used to tint widgets -->
-    <item name="colorAccent">#FF4081</item>
+    <item name="colorAccent">#87BD40</item>
     <!-- You can also set colorControlNormal, colorControlActivated
          colorControlHighlight and colorSwitchThumbNormal. -->
   </style>
+
 </resources>

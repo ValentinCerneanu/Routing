@@ -1,0 +1,28 @@
+﻿<menu xmlns:android="http://schemas.android.com/apk/res/android">
+  <group android:checkableBehavior="single">
+    <item
+      android:id="@+id/nav_nearest_charging_stations"
+      android:icon="@drawable/ic_menu"
+      android:title="Nearest Charging Stations" />
+    <item
+      android:id="@+id/nav_trips"
+      android:icon="@drawable/ic_menu"
+      android:title="Trips" />
+  </group>
+  <item android:title="My Account">
+    <menu>
+      <item
+        android:id="@+id/nav_my_cars"
+        android:icon="@drawable/ic_menu"
+        android:title="My cars" />
+      <item
+        android:id="@+id/nav_settings"
+        android:icon="@drawable/ic_menu"
+        android:title="Settings" />
+      <item
+        android:id="@+id/nav_logout"
+        android:icon="@drawable/ic_menu"
+        android:title="Logout" />
+    </menu>
+  </item>
+</menu>

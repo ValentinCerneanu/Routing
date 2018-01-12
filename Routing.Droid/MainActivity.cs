@@ -56,31 +56,33 @@ namespace Routing.Droid
                           hashPassword +
                           "&username=vali28";
 
-                JsonValue json = await FetchDataAsync(url);
+                StartActivity(typeof(MapActivity));
 
-                JsonValue answer = json["answer"];
+                //JsonValue json = await FetchDataAsync(url);
 
-                if (answer.Equals("true"))
-                {
-                    //successful login
-                    JsonValue token = json["token"];
-                    SaveCredentials(email, hashPassword);
-                    //startactivity(typeof(mapactivity));
+                //JsonValue answer = json["answer"];
 
-                }
-                else
-                {
-                    //unsuccessful login
-                    Android.Support.V7.App.AlertDialog.Builder alertDialog = new Android.Support.V7.App.AlertDialog.Builder(this);
-                    alertDialog.SetTitle("Login");
-                    alertDialog.SetMessage("Wrong email or password");
-                    alertDialog.SetNeutralButton("Try again", delegate
-                    {
-                        alertDialog.Dispose();
-                    });
-                    alertDialog.Show();
+                //if (answer.Equals("true"))
+                //{
+                //    //successful login
+                //    JsonValue token = json["token"];
+                //    SaveCredentials(email, hashPassword);
+                //    //startactivity(typeof(mapactivity));
 
-                }
+                //}
+                //else
+                //{
+                //    //unsuccessful login
+                //    Android.Support.V7.App.AlertDialog.Builder alertDialog = new Android.Support.V7.App.AlertDialog.Builder(this);
+                //    alertDialog.SetTitle("Login");
+                //    alertDialog.SetMessage("Wrong email or password");
+                //    alertDialog.SetNeutralButton("Try again", delegate
+                //    {
+                //        alertDialog.Dispose();
+                //    });
+                //    alertDialog.Show();
+
+                //}
             };
 
             btnCreateAcc.Click += (sender, e) => {
