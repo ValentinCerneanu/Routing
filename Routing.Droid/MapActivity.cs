@@ -115,16 +115,21 @@ namespace Routing.Droid
 
         private async void GoButtonClickedAsync()
         {
-            string url = "https://maps.googleapis.com/maps/api/directions/xml?origin="
+            string url = "https://maps.googleapis.com/maps/api/directions/json?origin="
                 + latitude + "," + longitude + "&destination=" + x + "," + y + "&key=AIzaSyBeT4UxwuGgyndiaiagBgY-thD09SvOEGE";
 
             goButton.Visibility = ViewStates.Invisible;
+            JsonValue json = await FetchDataAsync(url);
+            RootObject rootObject = JsonConvert.DeserializeObject<RootObject>(json);
 
-            var content = await GetXMLRequest(url);
+            //var content = await FetchDataAsyncXML(url);
+            //Console.Out.WriteLine("Response: {0}", content.ToString());
+            //XmlDocument xml = new XmlDocument();
+            //xml.LoadXml(content);
 
-            var xmlResult = new XmlDocument();
+            //var xmlResult = new XmlDocument();
 
-            xmlResult.LoadXml(content.Result);
+            //xmlResult.LoadXml(content);
 
             //    var longitudeNodes = xmlResult.GetElementsByTagName("Longitude");
 
@@ -153,16 +158,23 @@ namespace Routing.Droid
                     GMap.AddPolyline(polylineoption));
         }
 
-        public async Task<string> GetXMLRequest(string url)
+        private async Task<String> FetchDataAsyncXML(string url)
         {
-            using (HttpClient client = new HttpClient())
+            // Create an HTTP web request using the URL:
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(new Uri(url));
+            request.ContentType = "application/xml";
+            request.Method = "GET";
+
+            // Send the request to the server and wait for the response:
+            using (WebResponse response = await request.GetResponseAsync())
             {
-                using (HttpResponseMessage response = await client.GetAsync(url))
+                // Get a stream representation of the HTTP web response:
+                using (Stream stream = response.GetResponseStream())
                 {
-                    using (HttpContent content = response.Content)
-                    {
-                        return content.ReadAsStringAsync().Result;
-                    }
+                    // Use this stream to build a JSON document object:
+
+                    return response.GetResponseStream().ToString();
+
                 }
             }
         }

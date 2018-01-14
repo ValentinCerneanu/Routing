@@ -39,9 +39,4 @@ namespace Routing.Droid
         }
     }
 
-    public class Rootobject
-    {
-        public ChargePointDto[] Property1 { get; set; }
-    }
-
 }
