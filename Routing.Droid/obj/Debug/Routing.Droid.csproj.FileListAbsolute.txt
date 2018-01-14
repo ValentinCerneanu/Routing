@@ -85,6 +85,7 @@ D:\xamarin\Routing\Routing.Droid\bin\Debug\Xamarin.GooglePlayServices.Location.d
 D:\xamarin\Routing\Routing.Droid\bin\Debug\Xamarin.GooglePlayServices.Maps.dll
 D:\xamarin\Routing\Routing.Droid\bin\Debug\Xamarin.GooglePlayServices.Tasks.dll
 D:\xamarin\Routing\Routing.Droid\bin\Debug\Newtonsoft.Json.xml
+D:\xamarin\Routing\Routing.Droid\obj\Debug\Routing.Droid.csprojResolveAssemblyReference.cache
 D:\xamarin\Routing\Routing.Droid\obj\Debug\XbdMerge\Xamarin.GooglePlayServices.Basement.dll
 D:\xamarin\Routing\Routing.Droid\obj\Debug\XbdMerge\Xamarin.GooglePlayServices.Tasks.dll
 D:\xamarin\Routing\Routing.Droid\obj\Debug\XbdMerge\Xamarin.GooglePlayServices.Base.dll
@@ -113,9 +114,6 @@ D:\xamarin\Routing\Routing.Droid\obj\Debug\res\mipmap-xxxhdpi\ic_menu.png
 D:\xamarin\Routing\Routing.Droid\obj\Debug\res\mipmap-xxhdpi\ic_menu.png
 D:\xamarin\Routing\Routing.Droid\obj\Debug\R.cs.flag
 D:\xamarin\Routing\Routing.Droid\obj\Debug\uploadflags.txt
-D:\xamarin\Routing\Routing.Droid\bin\Debug\Routing.Droid.dll.mdb
-D:\xamarin\Routing\Routing.Droid\obj\Debug\android\assets\Routing.Droid.dll.mdb
-D:\xamarin\Routing\Routing.Droid\obj\Debug\Routing.Droid.csprojResolveAssemblyReference.cache
 D:\xamarin\Routing\Routing.Droid\bin\Debug\Routing.Droid.dll
 bin\Debug\Microsoft.CSharp.pdb
 bin\Debug\Mono.Android.pdb

@@ -120,7 +120,7 @@ namespace Routing.Droid
 
             goButton.Visibility = ViewStates.Invisible;
             JsonValue json = await FetchDataAsync(url);
-            RootObject rootObject = JsonConvert.DeserializeObject<RootObject>(json);
+            DirectionsDto directions = JsonConvert.DeserializeObject<DirectionsDto>(json);
 
             //var content = await FetchDataAsyncXML(url);
             //Console.Out.WriteLine("Response: {0}", content.ToString());
