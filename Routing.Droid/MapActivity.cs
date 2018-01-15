@@ -44,6 +44,7 @@ namespace Routing.Droid
         private Marker locationMarker;
         private Button goButton;
         public double x, y;
+        EditText editText;
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -60,6 +61,24 @@ namespace Routing.Droid
             drawerLayout = FindViewById<DrawerLayout>(Resource.Id.drawerlayout);
             navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
             goButton = FindViewById<Button>(Resource.Id.GoButton);
+            editText = FindViewById<EditText>(Resource.Id.search);
+            editText.ImeOptions = ImeAction.Search;
+
+            editText.EditorAction += async (sender, e) =>
+            {
+                if (e.ActionId == ImeAction.Search)
+                {
+                    //Toast.MakeText(Application.Context, editText.Text, ToastLength.Long).Show();
+                    InputMethodManager inputManager = (InputMethodManager)this.GetSystemService(Context.InputMethodService);
+                    inputManager.HideSoftInputFromWindow(this.CurrentFocus.WindowToken, HideSoftInputFlags.NotAlways);
+
+                    await SearchAsync(editText.Text);
+                }
+                else
+                {
+                    e.Handled = false;
+                }
+            };
 
             goButton.Click += async (sender, e) => {
                 GoButtonClickedAsync();
@@ -113,34 +132,27 @@ namespace Routing.Droid
             };
         }
 
+        public async Task SearchAsync(String input)
+        {
+            string url = "http://chargeapi.azurewebsites.net/api/chargepoint/" + input + "/" + latitude + "/" + longitude;
+            //JsonValue json = await FetchDataAsync(url);
+            //IList<ChargePointDto> points;
+            //points = DeserializeToList<ChargePointDto>(json.ToString());
+
+            Toast.MakeText(Application.Context, editText.Text, ToastLength.Long).Show();
+
+        }
+
         private async void GoButtonClickedAsync()
         {
             string url = "https://maps.googleapis.com/maps/api/directions/json?origin="
                 + latitude + "," + longitude + "&destination=" + x + "," + y + "&key=AIzaSyBeT4UxwuGgyndiaiagBgY-thD09SvOEGE";
 
             goButton.Visibility = ViewStates.Invisible;
-            JsonValue json = await FetchDataAsync(url);
-            DirectionsDto directions = JsonConvert.DeserializeObject<DirectionsDto>(json);
+            //JsonValue json = await FetchDataAsync(url);
+            //DirectionsDto directions = JsonConvert.DeserializeObject<DirectionsDto>(json);
 
-            //var content = await FetchDataAsyncXML(url);
-            //Console.Out.WriteLine("Response: {0}", content.ToString());
-            //XmlDocument xml = new XmlDocument();
-            //xml.LoadXml(content);
-
-            //var xmlResult = new XmlDocument();
-
-            //xmlResult.LoadXml(content);
-
-            //    var longitudeNodes = xmlResult.GetElementsByTagName("Longitude");
-
-            //var pointsNodes = responseXML.GetElementsByTagName("points");
-
-            //var polyline = responseXML.SelectNodes("overview_polyline/points");
-
-            //var points = polyline[0].Value.ToString();
-
-
-            var lstDecodedPoints = FnDecodePolylinePoints("gndnGuk_~CPtEXCLE?U[yLIaCAMKAO@QBmENyLN{UOgAKmBa@_Bo@WMeBkAeBmB_CcD}MoRQc@k@gAMAk@E{Do@{EaAyAq@cEoAyAu@oA_AcAcAcAsAeDaG[d@U|@KhAKv@Yx@QP]Pi@LkAb@_@Ra@b@yCxEcFfI{AbCa@\\s@p@_@Pw@ZKDa@CQIUWKMGCKAYFiB|@S@I?KEU]a@gDe@aCuDgNuCmKoA_FcAoDgBiFc@cAwAyCkAgBy@cA[c@WQ{@w@iO_Os@_AuAoBcBuBwAaBkBmBiEcE_IyGc@a@COOeADY?_@I[UUWEM@KHORENUV_@p@EJmFrBaDpAcI`DgDrAeUbJgHrCm@Vs@F]?ACKKKG[AKBeADOC}BiAsE_CmLcGyDiBk@a@e@_@{@a@{A_@aGuCqBcAcCaAsJgDaB[yAQoAKqHScEMaAAeDFsHRcA?e@E_HaAiCg@kIsAsN{BkQ{DqAUqC_@eGs@_BMuA?gAB}HtBaEjA}QhFmLdDm@TyA|@kBrA}AvA{CpCyMlLoSvQkBrAyAx@gBt@iCr@_OdEsDdAy@Ta@?a@C_@IYOKAK@IFk@x@[Pc@NcAVaAPa@Di@Ao@K}@Uk@QIGaBg@QKOO_@aAg@sBGKMk@UqAgEkXqBeM[kCWyD[yFUwB_@uC]gCQiBMiBAe@@QBCBK@WESKIGAQuAWeDIoBCkCDqC?{BE_Ae@gIs@gPm@aK{AcXKwCEsDHyTRwn@H_TN{_@LeEZuEtC_\\lEgf@`CwWfAcMRcE@?@A?C@C?E?CDc@tAwLn@yF\\{B^sBlA{E|GwR`Qof@`HuR`BmEdCsHhEuLpCyHzH}QzIuSvFuM\\{@Ry@L{BDQBCFMDO?UCUIQKIUCMBQVE`@D\\NTDFDVDp@AXGf@i@xAaI|QsD`JaJjSaB`EiF~N[z@uKiFGGGGGQgBySa@mBSuAUsBQaAMi@S[uBgBc@e@u@uAa@e@wBkBqBqAqCcA_ASoAOyAGaBHqANgBd@mA^kA|@");
+            var lstDecodedPoints = FnDecodePolylinePoints("asfnGk|g~ChA]L[EcBvC_@tC}@`FqAxCBlBWpAQ^XVre@\\xVC~UPh]iInZiKvV_B|DKX~@nAx@hAR^pAvE|A|FhGjQt@`Ff@pFfBvJ\\~~@Xru@Jxm@`@~lAp@vwABv~@wCnw@mJzdCoL`_DyBdc@cCdXcCxRoDbTiG~Z_EvO{Lz^iGlOoJhSwPzZmQt_@eMt[uMna@sNpk@mHn`@qF|^iFth@aCr\\{@fR}Apr@?|[\\l\\b@pf@WzZiApc@cEfn@sG|p@eB|X{@`Uc@fg@d@|`@tBnf@vDtc@|CvUtEjXrLdl@fExXxD~^`BnW`AnZP`Z_@~]yAn_@oBjVmEx^wHlb@gKja@uFrPyHvR_Oh\\qLr\\yGhV{DnPeGp]iCfRyFvj@_Ft`@eFl\\wHlb@kF~U}CvOsBbOyBhQ}BdWkBf_@s@bp@i@`V{@zQqBhZsDt]gE|XiHd^eGfVsI`YyKpYmE`KgOdZya@lw@ksBtzDgiB`jDeJnOmW~^wVpYaQtP_O`M_N|KwKdKgG~G_JxKoMfRyE|HeOxYyJrQkJpNwJhMgFjG{J~JyOpMcR|LeKpFwLdFwPvFiP~DsRnGcLxEiLjGwO`KoJnHsKtJuMdN_QrTwLjR{Pp\\{JpVuMbb@eNlc@aMp\\oOp^sK`Tq_@lp@yLvWeKdYeHdWaGtXoFj]qDl_@wFn~@mDf^sEr]iErWsF~XcIz\\qN`j@c|@thDyHd[oWdcAoN|g@mNha@eMrZ}MtXiMpTmNjTeHlLmJrQoNx\\oHbUmFzRoFpV}A|IcFn^cC`ZqAhVeBhr@eOjpGcBf\\gCvWyBxPwDdUmErSaHtVuJzXwKtVkKlRsLnQoGhIoOvU_OzXgW~m@wMbXmLbSeKfOmMpPcVbWmKnJcQ`RiK`NiNtTmLnU_JzTwE|N}HvYwGp]{ChToCvWeEpq@sCt\\aE~^uHfd@kFpXiJza@mIxY_KbZcVlm@oI|UyHfVmR|q@aGdQmJzTkJdRwElIiEzGqO|SsIfJkOzRgLrQeUtd@iRb^eXtb@iSr\\eQ`]oLbR{c@bq@uTv[e@rAsKjPkEjIiB`EqDlKmFzPcDjIyFdLwGnJ{UrYsd@tj@ySjYuQhZeHtMgH~QuEbKeDdFcEvEk^pXoWhSkJ|JgFzGwNvRqBnB}@Fm@o@MwAZaA`AY|AA|AwAb@a@\\ARRv@XzA]nAb@fK~IbChCBvA[r@AlAdCdHpVna@HTWrB_B|D_A`Bk@r@ODIRRb@|EfI~CnFjBmC@mBX}BnCmEd@e@jCgCzA|Dx@{@Z_@");
                 var latLngPoints = new LatLng[lstDecodedPoints.Count];
                 int index = 0;
                 foreach (Android.Locations.Location loc in lstDecodedPoints)
@@ -178,7 +190,6 @@ namespace Routing.Droid
                 }
             }
         }
-
 
         List<Android.Locations.Location> FnDecodePolylinePoints(string encodedPoints)
         {
