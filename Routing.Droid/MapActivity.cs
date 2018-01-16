@@ -45,6 +45,9 @@ namespace Routing.Droid
         private Button goButton;
         public double x, y;
         EditText editText;
+        private bool isThereAPoli=false;
+        public PolylineOptions[] polylineoption = new PolylineOptions[30];
+        public int numberOfPoly=0;
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -79,7 +82,7 @@ namespace Routing.Droid
                     e.Handled = false;
                 }
             };
-
+            //dasdas.SelectNodes("");
             goButton.Click += async (sender, e) => {
                 GoButtonClickedAsync();
             };
@@ -134,43 +137,88 @@ namespace Routing.Droid
 
         public async Task SearchAsync(String input)
         {
-            string url = "http://chargeapi.azurewebsites.net/api/chargepoint/" + input + "/" + latitude + "/" + longitude;
-            //JsonValue json = await FetchDataAsync(url);
-            //IList<ChargePointDto> points;
-            //points = DeserializeToList<ChargePointDto>(json.ToString());
+            string url = "http://chargeapi.azurewebsites.net/api/chargepoint/angle/" + latitude + "/" + longitude + "/" + 46.013260 + "/" + 25.623746;
 
-            Toast.MakeText(Application.Context, editText.Text, ToastLength.Long).Show();
+            JsonValue json = await FetchDataAsync(url);
+            IList<ChargePointDto> pointsToDestination;
+            pointsToDestination = DeserializeToList<ChargePointDto>(json.ToString());
 
+            foreach (var point in pointsToDestination)
+            {
+                AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(",", ",\n"));
+            }
+            
+            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(midPoint(Convert.ToDouble(latitude), Convert.ToDouble(longitude), 46.013260, 25.623746), 8);
+            GMap.MoveCamera(camera);
+
+            //Toast.MakeText(Application.Context, editText.Text, ToastLength.Long).Show();
+        }
+
+        private double DegreeToRadian(double angle)
+        {
+            return Math.PI * angle / 180.0;
+        }
+
+        private double RadianToDegree(double angle)
+        {
+            return angle * (180.0 / Math.PI);
+        }
+
+        public LatLng midPoint(double lat1, double lon1, double lat2, double lon2)
+        {
+
+            double dLon = DegreeToRadian(lon2 - lon1);
+
+            //convert to radians
+            lat1 = DegreeToRadian(lat1);
+            lat2 = DegreeToRadian(lat2);
+            lon1 = DegreeToRadian(lon1);
+
+            double Bx = Math.Cos(lat2) * Math.Cos(dLon);
+            double By = Math.Cos(lat2) * Math.Sin(dLon);
+            double lat3 = Math.Atan2(Math.Sin(lat1) + Math.Sin(lat2), Math.Sqrt((Math.Cos(lat1) + Bx) * (Math.Cos(lat1) + Bx) + By * By));
+            double lon3 = lon1 + Math.Atan2(By, Math.Cos(lat1) + Bx);
+
+            //print out in degrees
+            return new LatLng(RadianToDegree(lat3), RadianToDegree(lon3));
         }
 
         private async void GoButtonClickedAsync()
         {
+            goButton.Visibility = ViewStates.Invisible;
+            if(isThereAPoli == true)
+            {
+                polylineoption[numberOfPoly-1].Visible(false);
+                this.RunOnUiThread(() => GMap.AddPolyline(polylineoption[numberOfPoly-1]));
+            }
             string url = "https://maps.googleapis.com/maps/api/directions/json?origin="
                 + latitude + "," + longitude + "&destination=" + x + "," + y + "&key=AIzaSyBeT4UxwuGgyndiaiagBgY-thD09SvOEGE";
+     
+            string json = await FetchGoogleDataAsync(url);
+            Log.Error("lv", json);
+            DirectionsDto directions = JsonConvert.DeserializeObject<DirectionsDto>(json);
 
-            goButton.Visibility = ViewStates.Invisible;
-            //JsonValue json = await FetchDataAsync(url);
-            //DirectionsDto directions = JsonConvert.DeserializeObject<DirectionsDto>(json);
+            var lstDecodedPoints = FnDecodePolylinePoints(directions.routes[0].overview_polyline.points);
+            var latLngPoints = new LatLng[lstDecodedPoints.Count];
+            int index = 0;
+            foreach (Android.Locations.Location loc in lstDecodedPoints)
+            {
+                latLngPoints[index++] = new LatLng(loc.Latitude, loc.Longitude);
+            }
+            // Create polyline 
+            polylineoption[numberOfPoly].InvokeColor(Android.Graphics.Color.Green);
+            polylineoption[numberOfPoly].Geodesic(true);
+            polylineoption[numberOfPoly].Add(latLngPoints);
 
-            var lstDecodedPoints = FnDecodePolylinePoints("asfnGk|g~ChA]L[EcBvC_@tC}@`FqAxCBlBWpAQ^XVre@\\xVC~UPh]iInZiKvV_B|DKX~@nAx@hAR^pAvE|A|FhGjQt@`Ff@pFfBvJ\\~~@Xru@Jxm@`@~lAp@vwABv~@wCnw@mJzdCoL`_DyBdc@cCdXcCxRoDbTiG~Z_EvO{Lz^iGlOoJhSwPzZmQt_@eMt[uMna@sNpk@mHn`@qF|^iFth@aCr\\{@fR}Apr@?|[\\l\\b@pf@WzZiApc@cEfn@sG|p@eB|X{@`Uc@fg@d@|`@tBnf@vDtc@|CvUtEjXrLdl@fExXxD~^`BnW`AnZP`Z_@~]yAn_@oBjVmEx^wHlb@gKja@uFrPyHvR_Oh\\qLr\\yGhV{DnPeGp]iCfRyFvj@_Ft`@eFl\\wHlb@kF~U}CvOsBbOyBhQ}BdWkBf_@s@bp@i@`V{@zQqBhZsDt]gE|XiHd^eGfVsI`YyKpYmE`KgOdZya@lw@ksBtzDgiB`jDeJnOmW~^wVpYaQtP_O`M_N|KwKdKgG~G_JxKoMfRyE|HeOxYyJrQkJpNwJhMgFjG{J~JyOpMcR|LeKpFwLdFwPvFiP~DsRnGcLxEiLjGwO`KoJnHsKtJuMdN_QrTwLjR{Pp\\{JpVuMbb@eNlc@aMp\\oOp^sK`Tq_@lp@yLvWeKdYeHdWaGtXoFj]qDl_@wFn~@mDf^sEr]iErWsF~XcIz\\qN`j@c|@thDyHd[oWdcAoN|g@mNha@eMrZ}MtXiMpTmNjTeHlLmJrQoNx\\oHbUmFzRoFpV}A|IcFn^cC`ZqAhVeBhr@eOjpGcBf\\gCvWyBxPwDdUmErSaHtVuJzXwKtVkKlRsLnQoGhIoOvU_OzXgW~m@wMbXmLbSeKfOmMpPcVbWmKnJcQ`RiK`NiNtTmLnU_JzTwE|N}HvYwGp]{ChToCvWeEpq@sCt\\aE~^uHfd@kFpXiJza@mIxY_KbZcVlm@oI|UyHfVmR|q@aGdQmJzTkJdRwElIiEzGqO|SsIfJkOzRgLrQeUtd@iRb^eXtb@iSr\\eQ`]oLbR{c@bq@uTv[e@rAsKjPkEjIiB`EqDlKmFzPcDjIyFdLwGnJ{UrYsd@tj@ySjYuQhZeHtMgH~QuEbKeDdFcEvEk^pXoWhSkJ|JgFzGwNvRqBnB}@Fm@o@MwAZaA`AY|AA|AwAb@a@\\ARRv@XzA]nAb@fK~IbChCBvA[r@AlAdCdHpVna@HTWrB_B|D_A`Bk@r@ODIRRb@|EfI~CnFjBmC@mBX}BnCmEd@e@jCgCzA|Dx@{@Z_@");
-                var latLngPoints = new LatLng[lstDecodedPoints.Count];
-                int index = 0;
-                foreach (Android.Locations.Location loc in lstDecodedPoints)
-                {
-                    latLngPoints[index++] = new LatLng(loc.Latitude, loc.Longitude);
-                }
-                // Create polyline 
-                var polylineoption = new PolylineOptions();
-                polylineoption.InvokeColor(Android.Graphics.Color.Green);
-                polylineoption.Geodesic(true);
-                polylineoption.Add(latLngPoints);
-                // Don't forget to add it to the main quie, if you was doing the request for a cordinate in background
-                // Add polyline to map
-                this.RunOnUiThread(() =>
-                    GMap.AddPolyline(polylineoption));
-        }
+            isThereAPoli = true;
 
-        private async Task<String> FetchDataAsyncXML(string url)
+            // Add polyline to map
+            this.RunOnUiThread(() =>
+                GMap.AddPolyline(polylineoption[numberOfPoly]));
+            numberOfPoly++;
+    }
+
+        private async Task<String> FetchGoogleDataAsync(string url)
         {
             // Create an HTTP web request using the URL:
             HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(new Uri(url));
@@ -185,7 +233,13 @@ namespace Routing.Droid
                 {
                     // Use this stream to build a JSON document object:
 
-                    return response.GetResponseStream().ToString();
+                    //return response.GetResponseStream().ToString();
+
+                    StreamReader sr = new StreamReader(stream, Encoding.UTF8);
+                    //retrun html code 
+                    string content = sr.ReadToEnd();
+                    Android.Util.Log.Error("lv++", content);
+                    return content;
 
                 }
             }
@@ -238,7 +292,7 @@ namespace Routing.Droid
                         break;
 
                     currentLng += (sum & 1) == 1 ? ~(sum >> 1) : (sum >> 1);
-                    Android.Locations.Location p = new Android.Locations.Location("");
+                    Location p = new Location("");
                     p.Latitude = Convert.ToDouble(currentLat) / 100000.0;
                     p.Longitude = Convert.ToDouble(currentLng) / 100000.0;
                     poly.Add(p);
@@ -283,7 +337,14 @@ namespace Routing.Droid
             foreach(var point in points)
             {
                 AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(",", ",\n"));
+                
             }
+            for (int i = 0; i <= 20; i++)
+                polylineoption[i] = new PolylineOptions();
+
+            LatLng location = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
+            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(location, 10);
+            GMap.MoveCamera(camera);
         }
 
         public static IList<T> DeserializeToList<T>(string jsonString)
@@ -313,10 +374,6 @@ namespace Routing.Droid
             LatLng point = new LatLng(Convert.ToDouble(pointLat), Convert.ToDouble(pointLong));
             MarkerOptions options = new MarkerOptions().SetPosition(point).SetTitle(name).SetSnippet(info).SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueGreen));
             GMap.AddMarker(options);
-
-            LatLng location = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
-            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(location, 10);
-            GMap.MoveCamera(camera);
         }
 
         private void MapOnClick(object sender, GoogleMap.MapClickEventArgs mapClickEventArgs)
