@@ -46,8 +46,8 @@ namespace Routing.Droid
         public double x, y;
         EditText editText;
         private bool isThereAPoli=false;
-        public PolylineOptions[] polylineoption = new PolylineOptions[30];
-        public int numberOfPoly=0;
+        private int isItCentered = 0;
+        IList<ChargePointDto> points;
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -143,6 +143,11 @@ namespace Routing.Droid
             IList<ChargePointDto> pointsToDestination;
             pointsToDestination = DeserializeToList<ChargePointDto>(json.ToString());
 
+            GMap.Clear();
+            LatLng latlng = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
+            var options = new MarkerOptions().SetPosition(latlng).SetTitle("You").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
+            locationMarker = GMap.AddMarker(options);
+
             foreach (var point in pointsToDestination)
             {
                 AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(",", ",\n"));
@@ -188,8 +193,15 @@ namespace Routing.Droid
             goButton.Visibility = ViewStates.Invisible;
             if(isThereAPoli == true)
             {
-                polylineoption[numberOfPoly-1].Visible(false);
-                this.RunOnUiThread(() => GMap.AddPolyline(polylineoption[numberOfPoly-1]));
+                GMap.Clear();
+                foreach (var point in points)
+                {
+                    AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(",", ",\n"));
+
+                }
+                LatLng latlng = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
+                var options = new MarkerOptions().SetPosition(latlng).SetTitle("You").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
+                locationMarker = GMap.AddMarker(options);
             }
             string url = "https://maps.googleapis.com/maps/api/directions/json?origin="
                 + latitude + "," + longitude + "&destination=" + x + "," + y + "&key=AIzaSyBeT4UxwuGgyndiaiagBgY-thD09SvOEGE";
@@ -206,16 +218,16 @@ namespace Routing.Droid
                 latLngPoints[index++] = new LatLng(loc.Latitude, loc.Longitude);
             }
             // Create polyline 
-            polylineoption[numberOfPoly].InvokeColor(Android.Graphics.Color.Green);
-            polylineoption[numberOfPoly].Geodesic(true);
-            polylineoption[numberOfPoly].Add(latLngPoints);
+            PolylineOptions polylineoption = new PolylineOptions();
+            polylineoption.InvokeColor(Android.Graphics.Color.Green);
+            polylineoption.Geodesic(true);
+            polylineoption.Add(latLngPoints);
 
             isThereAPoli = true;
 
             // Add polyline to map
             this.RunOnUiThread(() =>
-                GMap.AddPolyline(polylineoption[numberOfPoly]));
-            numberOfPoly++;
+                GMap.AddPolyline(polylineoption));
     }
 
         private async Task<String> FetchGoogleDataAsync(string url)
@@ -331,7 +343,7 @@ namespace Routing.Droid
                          latitude + "/" +
                          longitude + "/50";
             JsonValue json = await FetchDataAsync(url);
-            IList<ChargePointDto> points;
+          
             points = DeserializeToList<ChargePointDto>(json.ToString());
 
             foreach(var point in points)
@@ -339,8 +351,6 @@ namespace Routing.Droid
                 AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(",", ",\n"));
                 
             }
-            for (int i = 0; i <= 20; i++)
-                polylineoption[i] = new PolylineOptions();
 
             LatLng location = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
             CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(location, 10);
@@ -435,8 +445,12 @@ namespace Routing.Droid
             GMap.MapClick += MapOnClick;
 
             LatLng latlng = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
-            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(latlng, 15);
-            GMap.MoveCamera(camera);
+            if(isItCentered < 2)
+            {
+                CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(latlng, 15);
+                GMap.MoveCamera(camera);
+                isItCentered++; 
+            }
 
             if (locationMarker != null) locationMarker.Remove();
             var options = new MarkerOptions().SetPosition(latlng).SetTitle("You").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
