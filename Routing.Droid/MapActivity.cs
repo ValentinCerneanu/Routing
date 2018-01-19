@@ -24,7 +24,6 @@ using Newtonsoft.Json.Linq;
 using NuGet.Modules;
 using Routing.Droid.Controls;
 using Newtonsoft.Json;
-using System.Xml;
 using System.Text;
 using System.Net.Http;
 
@@ -82,7 +81,6 @@ namespace Routing.Droid
                     e.Handled = false;
                 }
             };
-            //dasdas.SelectNodes("");
             goButton.Click += async (sender, e) => {
                 GoButtonClickedAsync();
             };
@@ -92,7 +90,6 @@ namespace Routing.Droid
                 e.MenuItem.SetChecked(true);
                 InputMethodManager inputManager = (InputMethodManager)this.GetSystemService(Context.InputMethodService);
                 inputManager.HideSoftInputFromWindow(this.CurrentFocus.WindowToken, HideSoftInputFlags.NotAlways);
-                //react to click here and swap fragments or navigate
 
                 var menuItem = e.MenuItem;
                 menuItem.SetChecked(!menuItem.IsChecked);
@@ -100,7 +97,6 @@ namespace Routing.Droid
 
                 switch (menuItem.ItemId)
                 {
-
                     case Resource.Id.nav_nearest_charging_stations:
 
                         //Toast.MakeText(Application.Context, "nav_nearest_charging_stations selected", ToastLength.Long).Show();
@@ -153,7 +149,7 @@ namespace Routing.Droid
                 AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(",", ",\n"));
             }
             
-            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(midPoint(Convert.ToDouble(latitude), Convert.ToDouble(longitude), 46.013260, 25.623746), 8);
+            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(MidPoint(Convert.ToDouble(latitude), Convert.ToDouble(longitude), 46.013260, 25.623746), 8);
             GMap.MoveCamera(camera);
 
             //Toast.MakeText(Application.Context, editText.Text, ToastLength.Long).Show();
@@ -169,9 +165,8 @@ namespace Routing.Droid
             return angle * (180.0 / Math.PI);
         }
 
-        public LatLng midPoint(double lat1, double lon1, double lat2, double lon2)
+        public LatLng MidPoint(double lat1, double lon1, double lat2, double lon2)
         {
-
             double dLon = DegreeToRadian(lon2 - lon1);
 
             //convert to radians
@@ -222,13 +217,14 @@ namespace Routing.Droid
             polylineoption.InvokeColor(Android.Graphics.Color.Green);
             polylineoption.Geodesic(true);
             polylineoption.Add(latLngPoints);
-
             isThereAPoli = true;
 
             // Add polyline to map
             this.RunOnUiThread(() =>
                 GMap.AddPolyline(polylineoption));
-    }
+            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(MidPoint(Convert.ToDouble(latitude), Convert.ToDouble(longitude), x, y), 11);
+            GMap.MoveCamera(camera);
+        }
 
         private async Task<String> FetchGoogleDataAsync(string url)
         {
@@ -244,24 +240,22 @@ namespace Routing.Droid
                 using (Stream stream = response.GetResponseStream())
                 {
                     // Use this stream to build a JSON document object:
-
                     //return response.GetResponseStream().ToString();
 
                     StreamReader sr = new StreamReader(stream, Encoding.UTF8);
                     //retrun html code 
                     string content = sr.ReadToEnd();
-                    Android.Util.Log.Error("lv++", content);
+                    Log.Error("lv++", content);
                     return content;
-
                 }
             }
         }
 
-        List<Android.Locations.Location> FnDecodePolylinePoints(string encodedPoints)
+        List<Location> FnDecodePolylinePoints(string encodedPoints)
         {
             if (string.IsNullOrEmpty(encodedPoints))
                 return null;
-            var poly = new List<Android.Locations.Location>();
+            var poly = new List<Location>();
             char[] polylinechars = encodedPoints.ToCharArray();
             int index = 0;
 
@@ -312,8 +306,6 @@ namespace Routing.Droid
             }
             catch
             {
-
-
             }
             return poly;
         }
@@ -343,13 +335,11 @@ namespace Routing.Droid
                          latitude + "/" +
                          longitude + "/50";
             JsonValue json = await FetchDataAsync(url);
-          
             points = DeserializeToList<ChargePointDto>(json.ToString());
 
             foreach(var point in points)
             {
                 AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(",", ",\n"));
-                
             }
 
             LatLng location = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
@@ -407,7 +397,6 @@ namespace Routing.Droid
                     // Use this stream to build a JSON document object:
                     JsonValue jsonDoc = await Task.Run(() => JsonObject.Load(stream));
                     Console.Out.WriteLine("Response: {0}", jsonDoc.ToString());
-
                     // Return the JSON document:
                     return jsonDoc;
                 }
@@ -447,7 +436,7 @@ namespace Routing.Droid
             LatLng latlng = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
             if(isItCentered < 2)
             {
-                CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(latlng, 15);
+                CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(latlng, 14);
                 GMap.MoveCamera(camera);
                 isItCentered++; 
             }
