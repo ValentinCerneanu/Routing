@@ -26,6 +26,7 @@ using Routing.Droid.Controls;
 using Newtonsoft.Json;
 using System.Text;
 using System.Net.Http;
+using System.Xml;
 
 namespace Routing.Droid
 {
@@ -133,17 +134,42 @@ namespace Routing.Droid
 
         public async Task SearchAsync(String input)
         {
-            string url = "http://chargeapi.azurewebsites.net/api/chargepoint/angle/" + latitude + "/" + longitude + "/" + 46.013260 + "/" + 25.623746;
+            input = input.Trim();
+            string url1 = "http://chargeapi.azurewebsites.net/api/chargepoint/destination/" + input;
+            string json1 = await FetchGoogleDataAsync(url1);
 
-            JsonValue json = await FetchDataAsync(url);
+            XmlDocument xml = new XmlDocument();
+            xml.LoadXml(json1); 
+            XmlNodeList xnList = xml.SelectNodes("/location");
+
+            string destinationLat = "0", destinationLng = "0";
+            string lat, lng;
+            string url2 = "0";
+            foreach (XmlNode xn in xnList)
+            {
+                destinationLat = xn["lat"].InnerText;
+                destinationLng = xn["lng"].InnerText;
+
+                url2 = "http://chargeapi.azurewebsites.net/api/chargepoint/angle/" + latitude + "/" + longitude + "/" + destinationLat + "/" + destinationLng;
+                //Console.WriteLine("Name: {0} {1}", destinationLat, destinationLng);
+            }
+           
+            JsonValue json2 = await FetchDataAsync(url2);
             IList<ChargePointDto> pointsToDestination;
-            pointsToDestination = DeserializeToList<ChargePointDto>(json.ToString());
+            pointsToDestination = DeserializeToList<ChargePointDto>(json2.ToString());
 
             GMap.Clear();
+            //location
             LatLng latlng = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
             var options = new MarkerOptions().SetPosition(latlng).SetTitle("You").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
             locationMarker = GMap.AddMarker(options);
 
+            //destination
+            LatLng destination = new LatLng(Convert.ToDouble(destinationLat), Convert.ToDouble(destinationLng));
+            MarkerOptions options1 = new MarkerOptions().SetPosition(destination).SetTitle(input).SetSnippet("Destination").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
+            GMap.AddMarker(options1);
+
+            //stations
             foreach (var point in pointsToDestination)
             {
                 AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(",", ",\n"));

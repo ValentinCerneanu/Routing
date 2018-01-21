@@ -140,6 +140,7 @@
     <Compile Include="MainActivity.cs" />
     <Compile Include="MapActivity.cs" />
     <Compile Include="NuGet.Modules\JsonHelper.cs" />
+    <Compile Include="PointDto.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
