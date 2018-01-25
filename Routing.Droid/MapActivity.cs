@@ -135,7 +135,7 @@ namespace Routing.Droid
         public async Task SearchAsync(String input)
         {
             input = input.Trim();
-            string url1 = "http://chargeapi.azurewebsites.net/api/chargepoint/destination/" + input;
+            string url1 = "http://chargetogoapi.azurewebsites.net/api/chargepoint/destination/" + input;
             string json1 = await FetchGoogleDataAsync(url1);
 
             XmlDocument xml = new XmlDocument();
@@ -143,14 +143,13 @@ namespace Routing.Droid
             XmlNodeList xnList = xml.SelectNodes("/location");
 
             string destinationLat = "0", destinationLng = "0";
-            string lat, lng;
             string url2 = "0";
             foreach (XmlNode xn in xnList)
             {
                 destinationLat = xn["lat"].InnerText;
                 destinationLng = xn["lng"].InnerText;
 
-                url2 = "http://chargeapi.azurewebsites.net/api/chargepoint/angle/" + latitude + "/" + longitude + "/" + destinationLat + "/" + destinationLng;
+                url2 = "http://chargetogoapi.azurewebsites.net/api/chargepoint/angle/" + latitude + "/" + longitude + "/" + destinationLat + "/" + destinationLng;
                 //Console.WriteLine("Name: {0} {1}", destinationLat, destinationLng);
             }
            
@@ -172,10 +171,10 @@ namespace Routing.Droid
             //stations
             foreach (var point in pointsToDestination)
             {
-                AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(",", ",\n"));
+                AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(", ", "\n"));
             }
             
-            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(MidPoint(Convert.ToDouble(latitude), Convert.ToDouble(longitude), 46.013260, 25.623746), 8);
+            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(MidPoint(Convert.ToDouble(latitude), Convert.ToDouble(longitude), Convert.ToDouble(destinationLat), Convert.ToDouble(destinationLng)), 8);
             GMap.MoveCamera(camera);
 
             //Toast.MakeText(Application.Context, editText.Text, ToastLength.Long).Show();
@@ -324,9 +323,11 @@ namespace Routing.Droid
                         break;
 
                     currentLng += (sum & 1) == 1 ? ~(sum >> 1) : (sum >> 1);
-                    Location p = new Location("");
-                    p.Latitude = Convert.ToDouble(currentLat) / 100000.0;
-                    p.Longitude = Convert.ToDouble(currentLng) / 100000.0;
+                    Location p = new Location("")
+                    {
+                        Latitude = Convert.ToDouble(currentLat) / 100000.0,
+                        Longitude = Convert.ToDouble(currentLng) / 100000.0
+                    };
                     poly.Add(p);
                 }
             }
@@ -353,19 +354,24 @@ namespace Routing.Droid
 
             x = markerClickEventArgs.Marker.Position.Latitude;
             y = markerClickEventArgs.Marker.Position.Longitude;
+
+            LatLng location = new LatLng(Convert.ToDouble(x), Convert.ToDouble(y));
+            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(location, 10);
+            GMap.MoveCamera(camera);
         }
 
         public async void NearestChargingStationsAsync()
         {
-            string url = "http://chargeapi.azurewebsites.net/api/chargepoint/" +
+            string url = "http://chargetogoapi.azurewebsites.net/api/chargepoint/" +
                          latitude + "/" +
                          longitude + "/50";
             JsonValue json = await FetchDataAsync(url);
             points = DeserializeToList<ChargePointDto>(json.ToString());
 
-            foreach(var point in points)
+            
+            foreach (var point in points)
             {
-                AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(",", ",\n"));
+                AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(", ", "\n"));
             }
 
             LatLng location = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
@@ -455,7 +461,7 @@ namespace Routing.Droid
         public void OnMapReady(GoogleMap googleMap)
         {
             this.GMap = googleMap;
-            //GMap.SetInfoWindowAdapter(new CustomInfoWindow(this.LayoutInflater));
+            GMap.SetInfoWindowAdapter(new CustomInfoWindow(LayoutInflater));
             GMap.MarkerClick += MapOnMarkerClick;
             GMap.MapClick += MapOnClick;
 

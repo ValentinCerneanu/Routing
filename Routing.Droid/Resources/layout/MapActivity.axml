@@ -15,11 +15,11 @@
             android:layout_height="60dp"
             android:layout_width="match_parent"
             android:background="#2196F3">
-              <EditText
-                  android:id="@+id/search"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:inputType="textEmailAddress" />
+            <EditText
+                android:id="@+id/search"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapSentences"/>
         </android.support.v7.widget.Toolbar>
         <RelativeLayout
             android:layout_width="match_parent"

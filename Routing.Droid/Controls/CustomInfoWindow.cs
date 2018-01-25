@@ -16,7 +16,7 @@ namespace Routing.Droid.Controls
 {
     public class CustomInfoWindow : Java.Lang.Object, IInfoWindowAdapter
     {
-        public IntPtr Handle => throw new NotImplementedException();
+
         private LayoutInflater inflater;
         private View infoWindow;
 
@@ -30,6 +30,10 @@ namespace Routing.Droid.Controls
             if (infoWindow == null)
                 infoWindow = inflater.Inflate(Resource.Layout.MapInfoWindow, null);
 
+            TextView textSnippet = (TextView)infoWindow.FindViewById<TextView>(Resource.Id.textViewSnipped);
+            textSnippet.Text= marker.Snippet;
+            TextView textTitle = (TextView)infoWindow.FindViewById<TextView>(Resource.Id.textViewTitle);
+            textTitle.Text = marker.Title;
             return infoWindow;
         }
 
