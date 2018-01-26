@@ -57,12 +57,6 @@ D:\xamarin\Routing\Routing.Droid\obj\Debug\R.cs.flag
 D:\xamarin\Routing\Routing.Droid\obj\Debug\uploadflags.txt
 D:\xamarin\Routing\Routing.Droid\bin\Debug\Routing.Droid.dll.mdb
 D:\xamarin\Routing\Routing.Droid\obj\Debug\android\assets\Routing.Droid.dll.mdb
-C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\XbdMerge\Xamarin.GooglePlayServices.Basement.dll
-C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\XbdMerge\Xamarin.GooglePlayServices.Tasks.dll
-C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\XbdMerge\Xamarin.GooglePlayServices.Base.dll
-C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\XbdMerge\Xamarin.GooglePlayServices.Maps.dll
-C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\XbdMerge\Xamarin.GooglePlayServices.Location.dll
-C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\Routing.Droid.csproj.CoreCompileInputs.cache
 C:\Users\user\source\repos\Routing\Routing.Droid\bin\Debug\Routing.Droid.dll
 C:\Users\user\source\repos\Routing\Routing.Droid\bin\Debug\Routing.Droid.pdb
 C:\Users\user\source\repos\Routing\Routing.Droid\bin\Debug\Routing.Droid.Routing.Droid.apk
@@ -92,6 +86,12 @@ C:\Users\user\source\repos\Routing\Routing.Droid\bin\Debug\Xamarin.GooglePlaySer
 C:\Users\user\source\repos\Routing\Routing.Droid\bin\Debug\Xamarin.GooglePlayServices.Tasks.dll
 C:\Users\user\source\repos\Routing\Routing.Droid\bin\Debug\Newtonsoft.Json.xml
 C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\Routing.Droid.csprojResolveAssemblyReference.cache
+C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\XbdMerge\Xamarin.GooglePlayServices.Basement.dll
+C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\XbdMerge\Xamarin.GooglePlayServices.Tasks.dll
+C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\XbdMerge\Xamarin.GooglePlayServices.Base.dll
+C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\XbdMerge\Xamarin.GooglePlayServices.Maps.dll
+C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\XbdMerge\Xamarin.GooglePlayServices.Location.dll
+C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\Routing.Droid.csproj.CoreCompileInputs.cache
 C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\Routing.Droid.dll
 C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\Routing.Droid.pdb
 C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\android\bin\Routing.Droid.Routing.Droid.apk

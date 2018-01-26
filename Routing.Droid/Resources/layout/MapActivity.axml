@@ -29,8 +29,20 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 class="com.google.android.gms.maps.MapFragment" />
+          <Button
+              android:id="@+id/GoStationButton"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_margin="7dp"
+              android:textColor="#ffffff"
+              android:textSize="20sp"
+              android:background="#87BD40"
+              android:text="Go"
+              android:layout_alignParentRight="true"
+              android:layout_alignParentBottom="true"
+              android:visibility="invisible"/>
             <Button
-                android:id="@+id/GoButton"
+                android:id="@+id/GoDestinationButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="7dp"
@@ -40,7 +52,19 @@
                 android:text="Go"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentBottom="true"
-                android:visibility="invisible" />
+                android:visibility="invisible"/>
+            <Button
+                android:id="@+id/AddButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="7dp"
+                android:textColor="#ffffff"
+                android:textSize="20sp"
+                android:background="#1976D2"
+                android:text="Add"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:visibility="invisible"/>
         </RelativeLayout>
     </LinearLayout>
     <android.support.design.widget.NavigationView

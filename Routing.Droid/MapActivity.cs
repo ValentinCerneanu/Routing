@@ -42,12 +42,18 @@ namespace Routing.Droid
         NavigationView navigationView;
         public static List<string> InvalidJsonElements;
         private Marker locationMarker;
-        private Button goButton;
+        private Button goStation;
+        private Button goDestination;
+        private Button AddButton;
         public double x, y;
         EditText editText;
         private bool isThereAPoli=false;
         private int isItCentered = 0;
         IList<ChargePointDto> points;
+        private bool nearest = false;
+        private string destinationLat = "0", destinationLng = "0";
+        private string waypoints="0";
+        IList<ChargePointDto> pointsToDestination;
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -63,9 +69,11 @@ namespace Routing.Droid
 
             drawerLayout = FindViewById<DrawerLayout>(Resource.Id.drawerlayout);
             navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
-            goButton = FindViewById<Button>(Resource.Id.GoButton);
             editText = FindViewById<EditText>(Resource.Id.search);
             editText.ImeOptions = ImeAction.Search;
+            goStation = FindViewById<Button>(Resource.Id.GoStationButton);
+            goDestination = FindViewById<Button>(Resource.Id.GoDestinationButton);
+            AddButton = FindViewById<Button>(Resource.Id.AddButton);
 
             editText.EditorAction += async (sender, e) =>
             {
@@ -74,6 +82,9 @@ namespace Routing.Droid
                     //Toast.MakeText(Application.Context, editText.Text, ToastLength.Long).Show();
                     InputMethodManager inputManager = (InputMethodManager)this.GetSystemService(Context.InputMethodService);
                     inputManager.HideSoftInputFromWindow(this.CurrentFocus.WindowToken, HideSoftInputFlags.NotAlways);
+                    goStation.Visibility = ViewStates.Invisible;
+                    AddButton.Visibility = ViewStates.Invisible;
+                    nearest = false;
 
                     await SearchAsync(editText.Text);
                 }
@@ -82,8 +93,17 @@ namespace Routing.Droid
                     e.Handled = false;
                 }
             };
-            goButton.Click += async (sender, e) => {
+            goStation.Click += async (sender, e) => {
                 GoButtonClickedAsync();
+            };
+
+            goDestination.Click += async (sender, e) => {
+                GoDestinationClickedAsync();
+            };
+
+            AddButton.Click += async (sender, e) =>
+            {
+                AddStationToRoute();
             };
 
             navigationView.NavigationItemSelected += (sender, e) =>
@@ -102,6 +122,7 @@ namespace Routing.Droid
 
                         //Toast.MakeText(Application.Context, "nav_nearest_charging_stations selected", ToastLength.Long).Show();
                         NearestChargingStationsAsync();
+                        nearest = true;
                         break;
 
                     case Resource.Id.nav_trips:
@@ -131,9 +152,63 @@ namespace Routing.Droid
                 }
             };
         }
+        public async Task AddStationToRoute()
+        {
+            if(waypoints.Equals("0"))
+            {
+                waypoints = x + "," + y;
+            }
+            else
+                waypoints = waypoints + "|" + x + "," + y;
 
+            AddButton.Visibility = ViewStates.Invisible;
+            string url = "https://maps.googleapis.com/maps/api/directions/json?origin="
+                + latitude + "," + longitude + "&destination=" + destinationLat + "," + destinationLng
+                + "&waypoints=" + waypoints + "&key=AIzaSyBeT4UxwuGgyndiaiagBgY-thD09SvOEGE";
+
+            string json = await FetchGoogleDataAsync(url);
+
+            GMap.Clear();
+            //location
+            LatLng latlng = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
+            var options = new MarkerOptions().SetPosition(latlng).SetTitle("You").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
+            locationMarker = GMap.AddMarker(options);
+
+            //destination
+            LatLng destination = new LatLng(Convert.ToDouble(destinationLat), Convert.ToDouble(destinationLng));
+            MarkerOptions options1 = new MarkerOptions().SetPosition(destination).SetTitle(editText.Text).SetSnippet("Destination").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
+            GMap.AddMarker(options1);
+
+            //stations
+            foreach (var point in pointsToDestination)
+            {
+                AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(", ", "\n"));
+            }
+
+            DirectionsDto directions = JsonConvert.DeserializeObject<DirectionsDto>(json);
+
+            var lstDecodedPoints = FnDecodePolylinePoints(directions.routes[0].overview_polyline.points);
+            var latLngPoints = new LatLng[lstDecodedPoints.Count];
+            int index = 0;
+            foreach (Android.Locations.Location loc in lstDecodedPoints)
+            {
+                latLngPoints[index++] = new LatLng(loc.Latitude, loc.Longitude);
+            }
+            // Create polyline 
+            PolylineOptions polylineoption = new PolylineOptions();
+            polylineoption.InvokeColor(Android.Graphics.Color.Green);
+            polylineoption.Geodesic(true);
+            polylineoption.Add(latLngPoints);
+            isThereAPoli = true;
+
+            // Add polyline to map
+            this.RunOnUiThread(() =>
+                GMap.AddPolyline(polylineoption));
+        }
         public async Task SearchAsync(String input)
         {
+            goStation.Visibility = ViewStates.Invisible;
+           
             input = input.Trim();
             string url1 = "http://chargetogoapi.azurewebsites.net/api/chargepoint/destination/" + input;
             string json1 = await FetchGoogleDataAsync(url1);
@@ -142,7 +217,7 @@ namespace Routing.Droid
             xml.LoadXml(json1); 
             XmlNodeList xnList = xml.SelectNodes("/location");
 
-            string destinationLat = "0", destinationLng = "0";
+            destinationLat = "0"; destinationLng = "0";
             string url2 = "0";
             foreach (XmlNode xn in xnList)
             {
@@ -152,12 +227,16 @@ namespace Routing.Droid
                 url2 = "http://chargetogoapi.azurewebsites.net/api/chargepoint/angle/" + latitude + "/" + longitude + "/" + destinationLat + "/" + destinationLng;
                 //Console.WriteLine("Name: {0} {1}", destinationLat, destinationLng);
             }
-           
+
+            //for polyline 
+            x = Convert.ToDouble(destinationLat);
+            y = Convert.ToDouble(destinationLng);
+
             JsonValue json2 = await FetchDataAsync(url2);
-            IList<ChargePointDto> pointsToDestination;
             pointsToDestination = DeserializeToList<ChargePointDto>(json2.ToString());
 
             GMap.Clear();
+            goDestination.Visibility = ViewStates.Visible;
             //location
             LatLng latlng = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
             var options = new MarkerOptions().SetPosition(latlng).SetTitle("You").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
@@ -208,9 +287,41 @@ namespace Routing.Droid
             return new LatLng(RadianToDegree(lat3), RadianToDegree(lon3));
         }
 
+        private async void GoDestinationClickedAsync()
+        {
+            goStation.Visibility = ViewStates.Invisible;
+            goDestination.Visibility = ViewStates.Invisible;
+           
+            string url = "https://maps.googleapis.com/maps/api/directions/json?origin="
+                + latitude + "," + longitude + "&destination=" + x + "," + y + "&key=AIzaSyBeT4UxwuGgyndiaiagBgY-thD09SvOEGE";
+
+            string json = await FetchGoogleDataAsync(url);
+            Log.Error("lv", json);
+            DirectionsDto directions = JsonConvert.DeserializeObject<DirectionsDto>(json);
+
+            var lstDecodedPoints = FnDecodePolylinePoints(directions.routes[0].overview_polyline.points);
+            var latLngPoints = new LatLng[lstDecodedPoints.Count];
+            int index = 0;
+            foreach (Android.Locations.Location loc in lstDecodedPoints)
+            {
+                latLngPoints[index++] = new LatLng(loc.Latitude, loc.Longitude);
+            }
+            // Create polyline 
+            PolylineOptions polylineoption = new PolylineOptions();
+            polylineoption.InvokeColor(Android.Graphics.Color.Green);
+            polylineoption.Geodesic(true);
+            polylineoption.Add(latLngPoints);
+            isThereAPoli = true;
+
+            // Add polyline to map
+            this.RunOnUiThread(() =>
+                GMap.AddPolyline(polylineoption));
+            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(MidPoint(Convert.ToDouble(latitude), Convert.ToDouble(longitude), x, y), 11);
+            GMap.MoveCamera(camera);
+        }
         private async void GoButtonClickedAsync()
         {
-            goButton.Visibility = ViewStates.Invisible;
+            goStation.Visibility = ViewStates.Invisible;
             if(isThereAPoli == true)
             {
                 GMap.Clear();
@@ -339,15 +450,25 @@ namespace Routing.Droid
 
         private void MapOnMarkerClick(object sender, GoogleMap.MarkerClickEventArgs markerClickEventArgs)
         {
+            AddButton.Visibility = ViewStates.Invisible;
             markerClickEventArgs.Handled = true;
-
-            if (markerClickEventArgs.Marker.Title != "You")
+            if (nearest == true)
             {
-                goButton.Visibility = ViewStates.Visible;
+                if (markerClickEventArgs.Marker.Title != "You")
+                {
+                    goStation.Visibility = ViewStates.Visible;
+                }
+                else
+                {
+                    goStation.Visibility = ViewStates.Invisible;
+                }
             }
             else
             {
-                goButton.Visibility = ViewStates.Invisible;
+                if(markerClickEventArgs.Marker.Title != "You" && markerClickEventArgs.Marker.Snippet !="Destination")
+                {
+                    AddButton.Visibility = ViewStates.Visible;
+                }
             }
 
             markerClickEventArgs.Marker.ShowInfoWindow();
@@ -355,9 +476,9 @@ namespace Routing.Droid
             x = markerClickEventArgs.Marker.Position.Latitude;
             y = markerClickEventArgs.Marker.Position.Longitude;
 
-            LatLng location = new LatLng(Convert.ToDouble(x), Convert.ToDouble(y));
-            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(location, 10);
-            GMap.MoveCamera(camera);
+            //LatLng location = new LatLng(Convert.ToDouble(x), Convert.ToDouble(y));
+            //CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(location, 10);
+            //GMap.MoveCamera(camera);
         }
 
         public async void NearestChargingStationsAsync()
@@ -368,7 +489,12 @@ namespace Routing.Droid
             JsonValue json = await FetchDataAsync(url);
             points = DeserializeToList<ChargePointDto>(json.ToString());
 
-            
+            goDestination.Visibility = ViewStates.Invisible;
+            GMap.Clear();
+            LatLng latlng = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
+            var options = new MarkerOptions().SetPosition(latlng).SetTitle("You").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
+            locationMarker = GMap.AddMarker(options);
+
             foreach (var point in points)
             {
                 AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(", ", "\n"));
@@ -410,7 +536,7 @@ namespace Routing.Droid
 
         private void MapOnClick(object sender, GoogleMap.MapClickEventArgs mapClickEventArgs)
         {
-            goButton.Visibility = ViewStates.Invisible;
+            goStation.Visibility = ViewStates.Invisible;
         }
 
         private async Task<JsonValue> FetchDataAsync(string url)
@@ -505,22 +631,6 @@ namespace Routing.Droid
             {
                 Toast.MakeText(this, "The Network Provider does not exist or is not enabled!", ToastLength.Long).Show();
             }
-
-
-            // Comment the line above, and uncomment the following, to test 
-            // the GetBestProvider option. This will determine the best provider
-            // at application launch. Note that once the provide has been set
-            // it will stay the same until the next time this method is called
-
-            /*var locationCriteria = new Criteria();
-
-			locationCriteria.Accuracy = Accuracy.Coarse;
-			locationCriteria.PowerRequirement = Power.Medium;
-
-			string locationProvider = locMgr.GetBestProvider(locationCriteria, true);
-
-			Log.Debug(tag, "Starting location updates with " + locationProvider.ToString());
-			locMgr.RequestLocationUpdates (locationProvider, 2000, 1, this);*/
         }
 
         protected override void OnPause()
