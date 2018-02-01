@@ -45,6 +45,7 @@ namespace Routing.Droid
         private Button goStation;
         private Button goDestination;
         private Button AddButton;
+        private Button goPlan;
         public double x, y;
         EditText editText;
         private bool isThereAPoli=false;
@@ -52,8 +53,10 @@ namespace Routing.Droid
         IList<ChargePointDto> points;
         private bool nearest = false;
         private string destinationLat = "0", destinationLng = "0";
+        private string startLat = "0", startLng = "0";
         private string waypoints="0";
-        IList<ChargePointDto> pointsToDestination;
+        IList<ChargePointDto> viaPointsToDestination;
+        bool plan = false;
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -74,6 +77,7 @@ namespace Routing.Droid
             goStation = FindViewById<Button>(Resource.Id.GoStationButton);
             goDestination = FindViewById<Button>(Resource.Id.GoDestinationButton);
             AddButton = FindViewById<Button>(Resource.Id.AddButton);
+            goPlan = FindViewById<Button>(Resource.Id.GoPlanButton);
 
             editText.EditorAction += async (sender, e) =>
             {
@@ -85,7 +89,9 @@ namespace Routing.Droid
                     goStation.Visibility = ViewStates.Invisible;
                     AddButton.Visibility = ViewStates.Invisible;
                     nearest = false;
-
+                    waypoints = "0";
+                    if(viaPointsToDestination!=null)
+                        viaPointsToDestination.Clear();
                     await SearchAsync(editText.Text);
                 }
                 else
@@ -95,6 +101,10 @@ namespace Routing.Droid
             };
             goStation.Click += async (sender, e) => {
                 GoButtonClickedAsync();
+            };
+
+            goPlan.Click += async (sender, e) => {
+                GoPlanButtonClickedAsync();
             };
 
             goDestination.Click += async (sender, e) => {
@@ -126,8 +136,28 @@ namespace Routing.Droid
                         break;
 
                     case Resource.Id.nav_trips:
-
-                        Toast.MakeText(Application.Context, "nav_trips selected", ToastLength.Long).Show();
+                        LayoutInflater layoutInflater = LayoutInflater.From(this);
+                        View view = layoutInflater.Inflate(Resource.Layout.user_input_dialog_box, null);
+                        Android.Support.V7.App.AlertDialog.Builder alertbuilder = new Android.Support.V7.App.AlertDialog.Builder(this);
+                        alertbuilder.SetView(view);
+                        var start = view.FindViewById<EditText>(Resource.Id.editTextStart);
+                        var destination = view.FindViewById<EditText>(Resource.Id.editTextDestination);
+                        alertbuilder.SetCancelable(false)
+                        .SetPositiveButton("Start", delegate
+                        {
+                            plan = true;
+                            waypoints = "0";
+                            if (viaPointsToDestination != null)
+                                viaPointsToDestination.Clear();
+                            Plan(start.Text, destination.Text);
+                        })
+                        .SetNegativeButton("Cancel", delegate
+                        {
+                            alertbuilder.Dispose();
+                        });
+                        Android.Support.V7.App.AlertDialog dialog = alertbuilder.Create();
+                        dialog.Show();
+                        //Toast.MakeText(Application.Context, "nav_trips selected", ToastLength.Long).Show();
                         break;
 
                     case Resource.Id.nav_my_cars:
@@ -152,35 +182,176 @@ namespace Routing.Droid
                 }
             };
         }
-        public async Task AddStationToRoute()
+        private async void GoPlanButtonClickedAsync()
         {
-            if(waypoints.Equals("0"))
-            {
-                waypoints = x + "," + y;
-            }
-            else
-                waypoints = waypoints + "|" + x + "," + y;
+            goPlan.Visibility = ViewStates.Invisible;
+            goStation.Visibility = ViewStates.Invisible;
+            goDestination.Visibility = ViewStates.Invisible;
+            plan = true;
+            nearest = false;
 
-            AddButton.Visibility = ViewStates.Invisible;
             string url = "https://maps.googleapis.com/maps/api/directions/json?origin="
-                + latitude + "," + longitude + "&destination=" + destinationLat + "," + destinationLng
-                + "&waypoints=" + waypoints + "&key=AIzaSyBeT4UxwuGgyndiaiagBgY-thD09SvOEGE";
+                + startLat + "," + startLng + "&destination=" + destinationLat + "," + destinationLng + "&key=AIzaSyBeT4UxwuGgyndiaiagBgY-thD09SvOEGE";
 
             string json = await FetchGoogleDataAsync(url);
+            Log.Error("lv", json);
+            DirectionsDto directions = JsonConvert.DeserializeObject<DirectionsDto>(json);
+
+            var lstDecodedPoints = FnDecodePolylinePoints(directions.routes[0].overview_polyline.points);
+            var latLngPoints = new LatLng[lstDecodedPoints.Count];
+            int index = 0;
+            foreach (Android.Locations.Location loc in lstDecodedPoints)
+            {
+                latLngPoints[index++] = new LatLng(loc.Latitude, loc.Longitude);
+            }
+            // Create polyline 
+            PolylineOptions polylineoption = new PolylineOptions();
+            polylineoption.InvokeColor(Android.Graphics.Color.Green);
+            polylineoption.Geodesic(true);
+            polylineoption.Add(latLngPoints);
+            isThereAPoli = true;
+
+            // Add polyline to map
+            this.RunOnUiThread(() =>
+                GMap.AddPolyline(polylineoption));
+            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(MidPoint(Convert.ToDouble(startLat), Convert.ToDouble(startLng), x, y), 8);
+            GMap.MoveCamera(camera);
+        }
+
+        public async Task Plan(String startText, String destinationText)
+        {
+            goStation.Visibility = ViewStates.Invisible;
+            goDestination.Visibility = ViewStates.Invisible;
+            AddButton.Visibility = ViewStates.Invisible;
+            plan = true;
+            nearest = false;
+
+            startText = startText.Trim();
+            destinationText = destinationText.Trim();
+            string url1 = "http://chargetogoapi.azurewebsites.net/api/chargepoint/destination/" + startText;
+            string json1 = await FetchGoogleDataAsync(url1);
+            string url2 = "http://chargetogoapi.azurewebsites.net/api/chargepoint/destination/" + destinationText;
+            string json2 = await FetchGoogleDataAsync(url2);
+
+            XmlDocument xml1 = new XmlDocument();
+            xml1.LoadXml(json1);
+            XmlNodeList xnList1 = xml1.SelectNodes("/location");
+
+            XmlDocument xml2 = new XmlDocument();
+            xml2.LoadXml(json2);
+            XmlNodeList xnList2 = xml2.SelectNodes("/location");
+
+            destinationLat = "0"; destinationLng = "0";
+            startLat = "0"; startLng = "0";
+            string url3 = "0";
+
+            foreach (XmlNode xn in xnList1)
+            {
+                startLat = xn["lat"].InnerText;
+                startLng = xn["lng"].InnerText;
+                //Console.WriteLine("Name: {0} {1}", destinationLat, destinationLng);
+            }
+            foreach (XmlNode xn in xnList2)
+            {
+                destinationLat = xn["lat"].InnerText;
+                destinationLng = xn["lng"].InnerText;
+                //Console.WriteLine("Name: {0} {1}", destinationLat, destinationLng);
+            }
+
+
+            url3 = "http://chargetogoapi.azurewebsites.net/api/chargepoint/angle/" + startLat + "/" + startLng + "/" + destinationLat + "/" + destinationLng;
+
+            //for polyline 
+            x = Convert.ToDouble(destinationLat);
+            y = Convert.ToDouble(destinationLng);
+
+            JsonValue json3 = await FetchDataAsync(url3);
+            viaPointsToDestination = DeserializeToList<ChargePointDto>(json3.ToString());
 
             GMap.Clear();
+            goPlan.Visibility = ViewStates.Visible;
             //location
-            LatLng latlng = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
-            var options = new MarkerOptions().SetPosition(latlng).SetTitle("You").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
-            locationMarker = GMap.AddMarker(options);
+            LatLng latlng = new LatLng(Convert.ToDouble(startLat), Convert.ToDouble(startLng));
+            var options = new MarkerOptions().SetPosition(latlng).SetTitle(startText).SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
+            Marker DestinationMarker = GMap.AddMarker(options);
 
             //destination
             LatLng destination = new LatLng(Convert.ToDouble(destinationLat), Convert.ToDouble(destinationLng));
-            MarkerOptions options1 = new MarkerOptions().SetPosition(destination).SetTitle(editText.Text).SetSnippet("Destination").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
+            MarkerOptions options1 = new MarkerOptions().SetPosition(destination).SetTitle(destinationText).SetSnippet("Destination").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
             GMap.AddMarker(options1);
 
             //stations
-            foreach (var point in pointsToDestination)
+            foreach (var point in viaPointsToDestination)
+            {
+                AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(", ", "\n"));
+            }
+
+            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(MidPoint(Convert.ToDouble(startLat), Convert.ToDouble(startLng), Convert.ToDouble(destinationLat), Convert.ToDouble(destinationLng)), 8);
+            GMap.MoveCamera(camera);
+
+            //Toast.MakeText(Application.Context, editText.Text, ToastLength.Long).Show();
+        }
+
+        public async Task AddStationToRoute()
+        {
+            string json;
+            if (plan == false)
+            {
+                if (waypoints.Equals("0"))
+                {
+                    waypoints = x + "," + y;
+                }
+                else
+                    waypoints = waypoints + "|" + x + "," + y;
+
+                AddButton.Visibility = ViewStates.Invisible;
+                string url = "https://maps.googleapis.com/maps/api/directions/json?origin="
+                    + latitude + "," + longitude + "&destination=" + destinationLat + "," + destinationLng
+                    + "&waypoints=" + waypoints + "&key=AIzaSyBeT4UxwuGgyndiaiagBgY-thD09SvOEGE";
+
+                json = await FetchGoogleDataAsync(url);
+
+                GMap.Clear();
+                //location
+                LatLng latlng = new LatLng(Convert.ToDouble(latitude), Convert.ToDouble(longitude));
+                var options = new MarkerOptions().SetPosition(latlng).SetTitle("You").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
+                locationMarker = GMap.AddMarker(options);
+
+                //destination
+                LatLng destination = new LatLng(Convert.ToDouble(destinationLat), Convert.ToDouble(destinationLng));
+                MarkerOptions options1 = new MarkerOptions().SetPosition(destination).SetTitle(editText.Text).SetSnippet("Destination").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
+                GMap.AddMarker(options1);
+            }
+            else
+            {
+                if (waypoints.Equals("0"))
+                {
+                    waypoints = x + "," + y;
+                }
+                else
+                    waypoints = waypoints + "|" + x + "," + y;
+
+                AddButton.Visibility = ViewStates.Invisible;
+                string url = "https://maps.googleapis.com/maps/api/directions/json?origin="
+                    + startLat + "," + startLng + "&destination=" + destinationLat + "," + destinationLng
+                    + "&waypoints=" + waypoints + "&key=AIzaSyBeT4UxwuGgyndiaiagBgY-thD09SvOEGE";
+
+                json = await FetchGoogleDataAsync(url);
+
+                GMap.Clear();
+                //location
+                LatLng latlng = new LatLng(Convert.ToDouble(startLat), Convert.ToDouble(startLng));
+                var options = new MarkerOptions().SetPosition(latlng).SetTitle("Start").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
+                Marker DestinationMarker = GMap.AddMarker(options);
+
+                //destination
+                LatLng destination = new LatLng(Convert.ToDouble(destinationLat), Convert.ToDouble(destinationLng));
+                MarkerOptions options1 = new MarkerOptions().SetPosition(destination).SetTitle("Destination").SetSnippet("Destination").SetIcon(BitmapDescriptorFactory.DefaultMarker(BitmapDescriptorFactory.HueAzure));
+                GMap.AddMarker(options1);
+            }
+
+            //stations
+            foreach (var point in viaPointsToDestination)
             {
                 AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(", ", "\n"));
             }
@@ -233,7 +404,7 @@ namespace Routing.Droid
             y = Convert.ToDouble(destinationLng);
 
             JsonValue json2 = await FetchDataAsync(url2);
-            pointsToDestination = DeserializeToList<ChargePointDto>(json2.ToString());
+            viaPointsToDestination = DeserializeToList<ChargePointDto>(json2.ToString());
 
             GMap.Clear();
             goDestination.Visibility = ViewStates.Visible;
@@ -248,7 +419,7 @@ namespace Routing.Droid
             GMap.AddMarker(options1);
 
             //stations
-            foreach (var point in pointsToDestination)
+            foreach (var point in viaPointsToDestination)
             {
                 AddNewPoint(point.Name, point.Latitude, point.Longitude, point.Info.Replace(", ", "\n"));
             }
@@ -259,38 +430,11 @@ namespace Routing.Droid
             //Toast.MakeText(Application.Context, editText.Text, ToastLength.Long).Show();
         }
 
-        private double DegreeToRadian(double angle)
-        {
-            return Math.PI * angle / 180.0;
-        }
-
-        private double RadianToDegree(double angle)
-        {
-            return angle * (180.0 / Math.PI);
-        }
-
-        public LatLng MidPoint(double lat1, double lon1, double lat2, double lon2)
-        {
-            double dLon = DegreeToRadian(lon2 - lon1);
-
-            //convert to radians
-            lat1 = DegreeToRadian(lat1);
-            lat2 = DegreeToRadian(lat2);
-            lon1 = DegreeToRadian(lon1);
-
-            double Bx = Math.Cos(lat2) * Math.Cos(dLon);
-            double By = Math.Cos(lat2) * Math.Sin(dLon);
-            double lat3 = Math.Atan2(Math.Sin(lat1) + Math.Sin(lat2), Math.Sqrt((Math.Cos(lat1) + Bx) * (Math.Cos(lat1) + Bx) + By * By));
-            double lon3 = lon1 + Math.Atan2(By, Math.Cos(lat1) + Bx);
-
-            //print out in degrees
-            return new LatLng(RadianToDegree(lat3), RadianToDegree(lon3));
-        }
-
         private async void GoDestinationClickedAsync()
         {
             goStation.Visibility = ViewStates.Invisible;
             goDestination.Visibility = ViewStates.Invisible;
+            plan = false;
            
             string url = "https://maps.googleapis.com/maps/api/directions/json?origin="
                 + latitude + "," + longitude + "&destination=" + x + "," + y + "&key=AIzaSyBeT4UxwuGgyndiaiagBgY-thD09SvOEGE";
@@ -316,9 +460,10 @@ namespace Routing.Droid
             // Add polyline to map
             this.RunOnUiThread(() =>
                 GMap.AddPolyline(polylineoption));
-            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(MidPoint(Convert.ToDouble(latitude), Convert.ToDouble(longitude), x, y), 11);
+            CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(MidPoint(Convert.ToDouble(latitude), Convert.ToDouble(longitude), x, y), 8);
             GMap.MoveCamera(camera);
         }
+
         private async void GoButtonClickedAsync()
         {
             goStation.Visibility = ViewStates.Invisible;
@@ -559,6 +704,34 @@ namespace Routing.Droid
                     return jsonDoc;
                 }
             }
+        }
+
+        private double DegreeToRadian(double angle)
+        {
+            return Math.PI * angle / 180.0;
+        }
+
+        private double RadianToDegree(double angle)
+        {
+            return angle * (180.0 / Math.PI);
+        }
+
+        public LatLng MidPoint(double lat1, double lon1, double lat2, double lon2)
+        {
+            double dLon = DegreeToRadian(lon2 - lon1);
+
+            //convert to radians
+            lat1 = DegreeToRadian(lat1);
+            lat2 = DegreeToRadian(lat2);
+            lon1 = DegreeToRadian(lon1);
+
+            double Bx = Math.Cos(lat2) * Math.Cos(dLon);
+            double By = Math.Cos(lat2) * Math.Sin(dLon);
+            double lat3 = Math.Atan2(Math.Sin(lat1) + Math.Sin(lat2), Math.Sqrt((Math.Cos(lat1) + Bx) * (Math.Cos(lat1) + Bx) + By * By));
+            double lon3 = lon1 + Math.Atan2(By, Math.Cos(lat1) + Bx);
+
+            //print out in degrees
+            return new LatLng(RadianToDegree(lat3), RadianToDegree(lon3));
         }
 
         public override bool OnOptionsItemSelected(IMenuItem item)

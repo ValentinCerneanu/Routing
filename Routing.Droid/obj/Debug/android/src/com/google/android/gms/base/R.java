@@ -3290,8 +3290,11 @@ containing a value of this type.
         public static int design_menu_item_action_area_stub=0x7f0b00a4;
         public static int design_menu_item_text=0x7f0b00a3;
         public static int design_navigation_view=0x7f0b00a2;
+        public static int dialogTitle=0x7f0b00c8;
         public static int disableHome=0x7f0b002b;
         public static int drawerlayout=0x7f0b00aa;
+        public static int editTextDestination=0x7f0b00ca;
+        public static int editTextStart=0x7f0b00c9;
         public static int edit_query=0x7f0b0087;
         public static int end=0x7f0b003a;
         public static int end_padder=0x7f0b00c6;
@@ -3330,17 +3333,17 @@ containing a value of this type.
         public static int link_signup=0x7f0b00a9;
         public static int listMode=0x7f0b0029;
         public static int list_item=0x7f0b006a;
-        public static int masked=0x7f0b00c9;
+        public static int masked=0x7f0b00cc;
         public static int media_actions=0x7f0b00ba;
         public static int message=0x7f0b00c7;
         public static int middle=0x7f0b003b;
         public static int mini=0x7f0b005c;
         public static int multiply=0x7f0b0031;
-        public static int nav_logout=0x7f0b00ce;
-        public static int nav_my_cars=0x7f0b00cc;
-        public static int nav_nearest_charging_stations=0x7f0b00ca;
-        public static int nav_settings=0x7f0b00cd;
-        public static int nav_trips=0x7f0b00cb;
+        public static int nav_logout=0x7f0b00d1;
+        public static int nav_my_cars=0x7f0b00cf;
+        public static int nav_nearest_charging_stations=0x7f0b00cd;
+        public static int nav_settings=0x7f0b00d0;
+        public static int nav_trips=0x7f0b00ce;
         public static int nav_view=0x7f0b00b1;
         public static int navigation_header_container=0x7f0b00a1;
         public static int never=0x7f0b0045;
@@ -3428,7 +3431,7 @@ containing a value of this type.
         public static int useLogo=0x7f0b0030;
         public static int user=0x7f0b00a7;
         public static int view_offset_helper=0x7f0b0016;
-        public static int visible=0x7f0b00c8;
+        public static int visible=0x7f0b00cb;
         public static int wide=0x7f0b0025;
         public static int withText=0x7f0b0046;
         public static int wrap_content=0x7f0b0038;
@@ -3513,6 +3516,7 @@ containing a value of this type.
         public static int select_dialog_singlechoice_material=0x7f04003f;
         public static int support_simple_spinner_dropdown_item=0x7f040040;
         public static int tooltip=0x7f040041;
+        public static int user_input_dialog_box=0x7f040042;
     }
     public static final class menu {
         public static int nav_menu=0x7f0e0000;
