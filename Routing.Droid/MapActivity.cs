@@ -46,6 +46,7 @@ namespace Routing.Droid
         private Button goDestination;
         private Button AddButton;
         private Button goPlan;
+        private Button goNavigate;
         public double x, y;
         EditText editText;
         private bool isThereAPoli=false;
@@ -78,6 +79,7 @@ namespace Routing.Droid
             goDestination = FindViewById<Button>(Resource.Id.GoDestinationButton);
             AddButton = FindViewById<Button>(Resource.Id.AddButton);
             goPlan = FindViewById<Button>(Resource.Id.GoPlanButton);
+            goNavigate = FindViewById<Button>(Resource.Id.GoNavigate);
 
             editText.EditorAction += async (sender, e) =>
             {
@@ -116,6 +118,24 @@ namespace Routing.Droid
                 AddStationToRoute();
             };
 
+            goNavigate.Click += async (sender, e) =>
+            {
+                var gmmIntentUri = Android.Net.Uri.Parse("google.navigation:q=" + x + "," + y + "&mode=d");
+                if (plan == false)
+                {
+                    //de la locatia actuala
+                    gmmIntentUri = Android.Net.Uri.Parse("google.navigation:q=" + x + "," + y + "&mode=d");
+                }
+                else
+                {
+                    gmmIntentUri = Android.Net.Uri.Parse("google.navigation:q=" + destinationLat + "," + destinationLng + "&mode=d");
+                }
+                Intent mapIntent = new Intent(Intent.ActionView, gmmIntentUri);
+                mapIntent.SetPackage("com.google.android.apps.maps");
+                StartActivity(mapIntent);
+
+            };
+
             navigationView.NavigationItemSelected += (sender, e) =>
             {
                 e.MenuItem.SetChecked(true);
@@ -131,6 +151,7 @@ namespace Routing.Droid
                     case Resource.Id.nav_nearest_charging_stations:
 
                         //Toast.MakeText(Application.Context, "nav_nearest_charging_stations selected", ToastLength.Long).Show();
+                        goNavigate.Visibility = ViewStates.Invisible;
                         NearestChargingStationsAsync();
                         nearest = true;
                         break;
@@ -187,6 +208,7 @@ namespace Routing.Droid
             goPlan.Visibility = ViewStates.Invisible;
             goStation.Visibility = ViewStates.Invisible;
             goDestination.Visibility = ViewStates.Invisible;
+            goNavigate.Visibility = ViewStates.Invisible;
             plan = true;
             nearest = false;
 
@@ -216,6 +238,8 @@ namespace Routing.Droid
                 GMap.AddPolyline(polylineoption));
             CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(MidPoint(Convert.ToDouble(startLat), Convert.ToDouble(startLng), x, y), 8);
             GMap.MoveCamera(camera);
+
+            goNavigate.Visibility = ViewStates.Visible;
         }
 
         public async Task Plan(String startText, String destinationText)
@@ -223,6 +247,7 @@ namespace Routing.Droid
             goStation.Visibility = ViewStates.Invisible;
             goDestination.Visibility = ViewStates.Invisible;
             AddButton.Visibility = ViewStates.Invisible;
+            goNavigate.Visibility = ViewStates.Invisible;
             plan = true;
             nearest = false;
 
@@ -379,7 +404,8 @@ namespace Routing.Droid
         public async Task SearchAsync(String input)
         {
             goStation.Visibility = ViewStates.Invisible;
-           
+            goNavigate.Visibility = ViewStates.Invisible;
+
             input = input.Trim();
             string url1 = "http://chargetogoapi.azurewebsites.net/api/chargepoint/destination/" + input;
             string json1 = await FetchGoogleDataAsync(url1);
@@ -462,6 +488,8 @@ namespace Routing.Droid
                 GMap.AddPolyline(polylineoption));
             CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(MidPoint(Convert.ToDouble(latitude), Convert.ToDouble(longitude), x, y), 8);
             GMap.MoveCamera(camera);
+
+            goNavigate.Visibility = ViewStates.Visible;
         }
 
         private async void GoButtonClickedAsync()
@@ -505,6 +533,8 @@ namespace Routing.Droid
                 GMap.AddPolyline(polylineoption));
             CameraUpdate camera = CameraUpdateFactory.NewLatLngZoom(MidPoint(Convert.ToDouble(latitude), Convert.ToDouble(longitude), x, y), 11);
             GMap.MoveCamera(camera);
+
+            goNavigate.Visibility = ViewStates.Visible;
         }
 
         private async Task<String> FetchGoogleDataAsync(string url)

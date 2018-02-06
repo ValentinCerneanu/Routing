@@ -117,9 +117,10 @@ C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\R.cs.flag
 C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\uploadflags.txt
 C:\Users\user\source\repos\Routing\Routing.Droid\bin\Debug\Routing.Droid.dll.mdb
 C:\Users\user\source\repos\Routing\Routing.Droid\obj\Debug\android\assets\Routing.Droid.dll.mdb
-bin\Debug\Mono.Android.pdb
-C:\Users\user\source\repos\Routing\Routing.Droid\bin\Debug\Routing.Droid.dll
+D:\xamarin\Routing\Routing.Droid\obj\Debug\res\layout\user_input_dialog_box.xml
+D:\xamarin\Routing\Routing.Droid\bin\Debug\Routing.Droid.dll
 bin\Debug\Microsoft.CSharp.pdb
+bin\Debug\Mono.Android.pdb
 bin\Debug\System.IO.Compression.pdb
 bin\Debug\System.Numerics.pdb
 bin\Debug\System.Xml.Linq.pdb
