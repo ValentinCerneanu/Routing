@@ -133,6 +133,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CarSpecs.cs" />
     <Compile Include="ChargePointDto.cs" />
     <Compile Include="Controls\CustomInfoWindow.cs" />
     <Compile Include="CreateAccActivity.cs" />
@@ -162,6 +163,12 @@
       <SubType>Designer</SubType>
     </AndroidResource>
     <AndroidResource Include="Resources\layout\user_input_dialog_box.axml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+    <AndroidResource Include="Resources\layout\CarSpecs.axml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+    <AndroidResource Include="Resources\layout\user_input_car_specs.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>

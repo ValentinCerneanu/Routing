@@ -1,3 +1,7 @@
+Routing.Droid.CarSpecs, Routing.Droid;md5e3594d7e8301fe80b614bce7bd2ae169.CarSpecs
+Routing.Droid.CarSpecs, Routing.Droid, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null;md5e3594d7e8301fe80b614bce7bd2ae169.CarSpecs
+Routing.Droid.CarSpecs;md5e3594d7e8301fe80b614bce7bd2ae169.CarSpecs
+routing.droid.CarSpecs;md5e3594d7e8301fe80b614bce7bd2ae169.CarSpecs
 Routing.Droid.CreateAccActivity, Routing.Droid;md5e3594d7e8301fe80b614bce7bd2ae169.CreateAccActivity
 Routing.Droid.CreateAccActivity, Routing.Droid, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null;md5e3594d7e8301fe80b614bce7bd2ae169.CreateAccActivity
 Routing.Droid.CreateAccActivity;md5e3594d7e8301fe80b614bce7bd2ae169.CreateAccActivity

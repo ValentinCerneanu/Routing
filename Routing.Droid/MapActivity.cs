@@ -183,7 +183,7 @@ namespace Routing.Droid
 
                     case Resource.Id.nav_my_cars:
 
-                        Toast.MakeText(Application.Context, "nav_my_cars selected", ToastLength.Long).Show();
+                        StartActivity(typeof(CarSpecs));
                         break;
 
                     case Resource.Id.nav_settings:
