@@ -27,6 +27,7 @@ using Newtonsoft.Json;
 using System.Text;
 using System.Net.Http;
 using System.Xml;
+using Android.Preferences;
 
 namespace Routing.Droid
 {
@@ -58,6 +59,9 @@ namespace Routing.Droid
         private string waypoints="0";
         IList<ChargePointDto> viaPointsToDestination;
         bool plan = false;
+        string name;
+        string range;
+        
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -80,6 +84,13 @@ namespace Routing.Droid
             AddButton = FindViewById<Button>(Resource.Id.AddButton);
             goPlan = FindViewById<Button>(Resource.Id.GoPlanButton);
             goNavigate = FindViewById<Button>(Resource.Id.GoNavigate);
+
+           // ISharedPreferences specs = CarSpecs.specs;
+            CarSpecs.specs = PreferenceManager.GetDefaultSharedPreferences(this);
+            name = CarSpecs.specs.GetString("name", null);
+            range = CarSpecs.specs.GetString("range", null);
+            if (range == null & name == null)
+                range = "100km";
 
             editText.EditorAction += async (sender, e) =>
             {
@@ -121,7 +132,7 @@ namespace Routing.Droid
             goNavigate.Click += async (sender, e) =>
             {
                 var gmmIntentUri = Android.Net.Uri.Parse("google.navigation:q=" + x + "," + y + "&mode=d");
-                if (plan == false)
+                if (plan == false || nearest == true)
                 {
                     //de la locatia actuala
                     gmmIntentUri = Android.Net.Uri.Parse("google.navigation:q=" + x + "," + y + "&mode=d");
@@ -157,6 +168,7 @@ namespace Routing.Droid
                         break;
 
                     case Resource.Id.nav_trips:
+                        nearest = false;
                         LayoutInflater layoutInflater = LayoutInflater.From(this);
                         View view = layoutInflater.Inflate(Resource.Layout.user_input_dialog_box, null);
                         Android.Support.V7.App.AlertDialog.Builder alertbuilder = new Android.Support.V7.App.AlertDialog.Builder(this);
@@ -186,14 +198,9 @@ namespace Routing.Droid
                         StartActivity(typeof(CarSpecs));
                         break;
 
-                    case Resource.Id.nav_settings:
-
-                        Toast.MakeText(Application.Context, "nav_settings selected", ToastLength.Long).Show();
-                        break;
-
                     case Resource.Id.nav_logout:
 
-                        Toast.MakeText(Application.Context, "nav_logout selected", ToastLength.Long).Show();
+                        this.FinishAffinity();
                         break;
 
                     default:
@@ -284,7 +291,7 @@ namespace Routing.Droid
             }
 
 
-            url3 = "http://chargetogoapi.azurewebsites.net/api/chargepoint/angle/" + startLat + "/" + startLng + "/" + destinationLat + "/" + destinationLng;
+            url3 = "http://chargetogoapi.azurewebsites.net/api/chargepoint/route/" + startLat + "/" + startLng + "/" + destinationLat + "/" + destinationLng + "/" + range;
 
             //for polyline 
             x = Convert.ToDouble(destinationLat);
@@ -421,7 +428,8 @@ namespace Routing.Droid
                 destinationLat = xn["lat"].InnerText;
                 destinationLng = xn["lng"].InnerText;
 
-                url2 = "http://chargetogoapi.azurewebsites.net/api/chargepoint/angle/" + latitude + "/" + longitude + "/" + destinationLat + "/" + destinationLng;
+                //url2 = "http://chargetogoapi.azurewebsites.net/api/chargepoint/angle/" + latitude + "/" + longitude + "/" + destinationLat + "/" + destinationLng;
+                url2 = "http://chargetogoapi.azurewebsites.net/api/chargepoint/route/" + latitude + "/" + longitude + "/" + destinationLat + "/" + destinationLng + "/" + range;
                 //Console.WriteLine("Name: {0} {1}", destinationLat, destinationLng);
             }
 

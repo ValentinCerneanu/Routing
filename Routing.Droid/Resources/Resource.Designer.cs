@@ -2867,17 +2867,14 @@ namespace Routing.Droid
 			// aapt resource value: 0x7f0b0095
 			public const int nameCar = 2131427477;
 			
-			// aapt resource value: 0x7f0b00db
-			public const int nav_logout = 2131427547;
+			// aapt resource value: 0x7f0b00da
+			public const int nav_logout = 2131427546;
 			
 			// aapt resource value: 0x7f0b00d9
 			public const int nav_my_cars = 2131427545;
 			
 			// aapt resource value: 0x7f0b00d7
 			public const int nav_nearest_charging_stations = 2131427543;
-			
-			// aapt resource value: 0x7f0b00da
-			public const int nav_settings = 2131427546;
 			
 			// aapt resource value: 0x7f0b00d8
 			public const int nav_trips = 2131427544;

@@ -14,7 +14,7 @@ using Android.Preferences;
 
 namespace Routing.Droid
 {
-    [Activity(Label = "Routing.Droid", MainLauncher = true, Theme = "@style/RoutingTheme")]
+    [Activity(Label = "ChargeToGo", MainLauncher = true, Theme = "@style/RoutingTheme", Icon = "@drawable/img")]
     public class MainActivity : Activity
     {
         private EditText etEmail;

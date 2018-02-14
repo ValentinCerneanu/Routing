@@ -3346,10 +3346,9 @@ containing a value of this type.
         public static final int mini=0x7f0b005c;
         public static final int multiply=0x7f0b0031;
         public static final int nameCar=0x7f0b0095;
-        public static final int nav_logout=0x7f0b00db;
+        public static final int nav_logout=0x7f0b00da;
         public static final int nav_my_cars=0x7f0b00d9;
         public static final int nav_nearest_charging_stations=0x7f0b00d7;
-        public static final int nav_settings=0x7f0b00da;
         public static final int nav_trips=0x7f0b00d8;
         public static final int nav_view=0x7f0b00b8;
         public static final int navigation_header_container=0x7f0b00a6;

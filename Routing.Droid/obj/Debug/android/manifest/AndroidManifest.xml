@@ -13,7 +13,7 @@
     <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
     <activity android:label="Routing.Droid" android:noHistory="true" android:theme="@style/RoutingTheme" android:name="md5e3594d7e8301fe80b614bce7bd2ae169.CarSpecs" />
     <activity android:label="Routing.Droid" android:theme="@style/RoutingTheme" android:name="md5e3594d7e8301fe80b614bce7bd2ae169.CreateAccActivity" />
-    <activity android:label="Routing.Droid" android:theme="@style/RoutingTheme" android:name="md5e3594d7e8301fe80b614bce7bd2ae169.MainActivity">
+    <activity android:icon="@drawable/img" android:label="ChargeToGo" android:theme="@style/RoutingTheme" android:name="md5e3594d7e8301fe80b614bce7bd2ae169.MainActivity">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />

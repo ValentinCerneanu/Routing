@@ -10,11 +10,11 @@
         android:id="@+id/user"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Username"
+        android:text="Welcome"
         android:gravity="left"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="40dp"
         android:layout_marginBottom="10dp"
-        android:layout_marginLeft="5dp"
-        android:textSize="16dip"
+        android:layout_marginLeft="15dp"
+        android:textSize="20sp"
         android:textColor="#000000"/>
 </LinearLayout>

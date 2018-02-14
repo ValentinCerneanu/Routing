@@ -18,9 +18,9 @@ namespace Routing.Droid
     [Activity(Label = "Routing.Droid", Theme = "@style/RoutingTheme", NoHistory = true)]
     public class CarSpecs : AppCompatActivity
     {
-        ISharedPreferences specs;
-        string name;
-        string range;
+        public static ISharedPreferences specs;
+        public string name;
+        public string range;
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
